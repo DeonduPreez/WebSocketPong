@@ -1,0 +1,12 @@
+body {
+    background: black;
+}
+
+#game-screen {
+    background: white;
+    border: 1px solid red;
+}
+
+img {
+    display: none;
+}
