@@ -1,6 +1,7 @@
 import Paddle from "./entity/paddle.js";
 import Ball from "./entity/ball.js";
 import InputHandler from "./input.js";
+import {basicPaddleZones} from "./entity/collision-zone.js";
 
 export const GAMESTATE = {
     PAUSED: 0,
@@ -15,12 +16,13 @@ export default class Game {
     constructor(gameWidth, gameHeight) {
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-        this.playerOne = new Paddle(this, 1);
+        const audio = new Audio("/assets/Sounds/PaddleCollision/Ball_TennisPlop.ogg");
+        this.playerOne = new Paddle(this, 1, basicPaddleZones, audio);
         this.playerOnePoints = 0;
-        this.playerTwo = new Paddle(this, 2);
+        this.playerTwo = new Paddle(this, 2, basicPaddleZones, audio);
         this.playerTwoPoints = 0;
         this.ball = new Ball(this);
-        // this.gameState = GAMESTATE.MENU;
+        this.gameState = GAMESTATE.MENU;
 
         this.gameObjects = [this.playerOne, this.playerTwo, this.ball];
 
@@ -33,6 +35,7 @@ export default class Game {
         }
         this.playerOnePoints = 0;
         this.playerTwoPoints = 0;
+        this.gameState = GAMESTATE.RUNNING;
     }
 
     update(deltaTime) {
@@ -47,6 +50,10 @@ export default class Game {
 
     draw(ctx) {
         this.gameObjects.forEach((obj) => obj.draw(ctx));
+
+        ctx.font = "30px Arial";
+        ctx.fillText(this.playerTwoPoints, this.gameWidth / 2 - 30, 50);
+        ctx.fillText(this.playerOnePoints, this.gameWidth / 2 + 30, 50);
 
         if (this.gameState === GAMESTATE.PAUSED) {
             ctx.rect(0, 0, this.gameWidth, this.gameHeight);

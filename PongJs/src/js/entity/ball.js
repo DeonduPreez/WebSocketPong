@@ -1,15 +1,14 @@
 import {detectCollision} from "../helpers/collisionDetection.js";
 
-const ballSpeed = 2;
-
 export default class Ball {
     constructor(game) {
+        this.minSpeed = 2;
         this.game = game;
         this.image = document.getElementById("ball");
         this.gameWidth = game.gameWidth;
         this.gameHeight = game.gameHeight;
         this.size = 16;
-        this.speedIncrease = 2;
+        this.speedIncrease = 4;
         this.maxSpeed = 10;
         this.reset();
     }
@@ -28,14 +27,18 @@ export default class Ball {
         if (this.speed.x > this.maxSpeed) {
             this.speed.x = this.maxSpeed;
         }
+        if (this.speed.x < -this.maxSpeed) {
+            this.speed.x = -this.maxSpeed;
+        }
         if (this.speed.y > this.maxSpeed) {
             this.speed.y = this.maxSpeed;
+        }
+        if (this.speed.y < -this.maxSpeed) {
+            this.speed.y = -this.maxSpeed;
         }
 
         this.position.x += this.speed.x;
         this.position.y += this.speed.y;
-
-        // TODO : Check where on paddle it hit then move accordingly
 
         // Wall on left or right
         if (this.position.x < 0) {
@@ -57,25 +60,21 @@ export default class Ball {
             this.speed.y = -this.speed.y;
         }
 
+        // Player One collision
         const playerOneCollision = detectCollision(this, this.game.playerOne);
         if (playerOneCollision != null) {
             this.speed = playerOneCollision.speedModifier(this);
-            // this.speed.x += this.speedIncrease;
-            // this.speed.y += this.speedIncrease;
-            this.speed.x = -this.speed.x;
-            this.position.x = this.game.playerOne.position.x - this.size;
+            this.position.x = this.game.playerOne.position.x + this.game.playerOne.width - this.size;
+            this.game.playerOne.playPaddleCollision();
         }
+
+        // Player Two collision
         const playerTwoCollision = detectCollision(this, this.game.playerTwo);
         if (playerTwoCollision != null) {
             this.speed = playerTwoCollision.speedModifier(this);
-            this.speed.x = -this.speed.x;
             this.position.x = this.game.playerTwo.position.x - this.size;
+            this.game.playerTwo.playPaddleCollision();
         }
-        // else if (detectLeftRightCollision(this, this.game.paddle)) {
-        //   // TODO : Left Right Collision movement
-        //   this.speed.x = -this.speed.x;
-        //   this.position.x = this.game.paddle.position.x - this.size;
-        // }
     }
 
     reset() {
@@ -84,8 +83,8 @@ export default class Ball {
             y: this.gameHeight / 2 - this.size / 2
         };
         this.speed = {
-            x: ballSpeed,
-            y: -ballSpeed
+            x: this.minSpeed,
+            y: -this.minSpeed
         };
     }
 }

@@ -1,7 +1,5 @@
-import CollisionZone from "./collision-zone.js";
-
 export default class Paddle {
-    constructor(game, playerNumber) {
+    constructor(game, playerNumber, zones, paddleCollisionSoundFile) {
         this.width = 20;
         this.height = 150;
         this.maxSpeed = 10;
@@ -13,30 +11,8 @@ export default class Paddle {
             y: game.gameHeight / 2 - this.height / 2
         }
         this.speed = 0;
-        this.zones = [
-            new CollisionZone((ball) => {
-                let ySpeed = ball.speed.y;
-                if (ySpeed > 0) {
-                    ySpeed = -ySpeed;
-                }
-                let xSpeed = ball.speed.x;
-                if (ball.speed.x < 0)
-                {
-                    xSpeed = xSpeed - ball.speedIncrease;
-                }
-                return {x: xSpeed * - 1, y: ySpeed};
-            }),
-            new CollisionZone((ball) => {
-                return {x: ball.speed.x + ball.speedIncrease, y: 0};
-            }),
-            new CollisionZone((ball) => {
-                let ySpeed = ball.speed.y;
-                if (ySpeed < 0) {
-                    ySpeed = -ySpeed;
-                }
-                return {x: ball.speed.x + ball.speedIncrease, y: ySpeed};
-            })
-        ];
+        this.zones = zones;
+        this.paddleCollisionSoundFile = paddleCollisionSoundFile;
     }
 
     draw(ctx) {
@@ -65,5 +41,9 @@ export default class Paddle {
 
     moveDown() {
         this.speed = this.maxSpeed;
+    }
+
+    playPaddleCollision(){
+        this.paddleCollisionSoundFile.play();
     }
 }
