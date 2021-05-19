@@ -4,35 +4,38 @@ export default class CollisionZone {
     }
 }
 
+export const onePaddleZone = [
+    new CollisionZone((ball) => {
+        return {x: reverseXSpeed(ball), y: 0};
+    })
+];
+
 export const basicPaddleZones = [
     new CollisionZone((ball) => {
         let ySpeed = ball.speed.y;
         if (ySpeed > 0) {
             ySpeed = -ySpeed;
         }
-        if (ySpeed === 0)
-        {
+        if (ySpeed === 0) {
             ySpeed = -ball.minSpeed;
         }
-        let xSpeed = ball.speed.x;
-        xSpeed = ball.speed.x < 0 ? xSpeed - ball.speedIncrease : xSpeed + ball.speedIncrease;
-        return {x: -xSpeed, y: ySpeed};
+        return {x: reverseXSpeed(ball), y: ySpeed};
     }),
     new CollisionZone((ball) => {
-        const xSpeed = ball.speed.x < 0 ? ball.speed.x - ball.speedIncrease : ball.speed.x + ball.speedIncrease;
-        return {x: -xSpeed, y: 0};
+        return {x: reverseXSpeed(ball), y: 0};
     }),
     new CollisionZone((ball) => {
         let ySpeed = ball.speed.y;
         if (ySpeed < 0) {
             ySpeed = -ySpeed;
         }
-        if (ySpeed === 0)
-        {
+        if (ySpeed === 0) {
             ySpeed = ball.minSpeed;
         }
-        let xSpeed = ball.speed.x;
-        xSpeed = ball.speed.x < 0 ? xSpeed - ball.speedIncrease : xSpeed + ball.speedIncrease;
-        return {x: -xSpeed, y: ySpeed};
+        return {x: reverseXSpeed(ball), y: ySpeed};
     })
 ];
+
+function reverseXSpeed(ball) {
+    return -(ball.speed.x < 0 ? ball.speed.x - ball.speedIncrease : ball.speed.x + ball.speedIncrease);
+}

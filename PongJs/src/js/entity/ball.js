@@ -1,26 +1,36 @@
-import {detectCollision} from "../helpers/collisionDetection.js";
+import {debugZones, detectCollision, drawHitBox} from "../helpers/collisionDetection.js";
+import {createImageElement} from "../helpers/element-helper.js";
+import {zoneDebug} from "../index.js";
 
 export default class Ball {
-    constructor(game) {
+    constructor(game, theme) {
+        this.imageElement = createImageElement(theme.ball.image);
+        this.theme = theme;
         this.minSpeed = 2;
         this.game = game;
-        this.image = document.getElementById("ball");
         this.gameWidth = game.gameWidth;
         this.gameHeight = game.gameHeight;
-        this.size = 16;
+        this.height = theme.ball.height;
+        this.width = theme.ball.width;
         this.speedIncrease = 4;
         this.maxSpeed = 10;
         this.reset();
     }
 
-    draw(ctx) {
-        ctx.drawImage(
-            this.image,
-            this.position.x,
-            this.position.y,
-            this.size,
-            this.size
-        );
+    getHitBox() {
+        let topOfBall = this.position.y + (this.theme.ball.overflow ? this.theme.ball.overflowY / 2 : 0);
+        let xPos = this.position.x + (this.theme.ball.overflow ? this.theme.ball.overflowX / 2 : 0);
+        let bottomOfBall = topOfBall + this.height;
+        return {
+            top: topOfBall,
+            bottom: bottomOfBall,
+            left: xPos,
+            right: xPos + this.width,
+            position: {
+                x: xPos,
+                y: topOfBall
+            }
+        };
     }
 
     update(deltaTime) {
@@ -40,23 +50,27 @@ export default class Ball {
         this.position.x += this.speed.x;
         this.position.y += this.speed.y;
 
-        // Wall on left or right
-        if (this.position.x < 0) {
+        const ballHitBox = this.getHitBox();
+
+        // Wall on left
+        if (ballHitBox.right < 0) {
             this.game.givePlayerPoint(1);
             this.reset();
         }
-        if (this.position.x + this.size > this.gameWidth) {
+
+        // Wall on right
+        if (ballHitBox.left > this.gameWidth) {
             this.game.givePlayerPoint(2);
             this.reset();
         }
 
         // Wall on top
-        if (this.position.y < 0) {
+        if (ballHitBox.top < 0) {
             this.speed.y = -this.speed.y;
         }
 
         //Bottom of game
-        if (this.position.y + this.size > this.gameHeight) {
+        if (ballHitBox.bottom > this.gameHeight) {
             this.speed.y = -this.speed.y;
         }
 
@@ -64,23 +78,64 @@ export default class Ball {
         const playerOneCollision = detectCollision(this, this.game.playerOne);
         if (playerOneCollision != null) {
             this.speed = playerOneCollision.speedModifier(this);
-            this.position.x = this.game.playerOne.position.x + this.game.playerOne.width - this.size;
+            const playerOneHitBox = this.game.playerOne.getHitBox();
+            this.position.x = playerOneHitBox.right - this.width - (this.theme.ball.overflow ? this.theme.ball.overflowX / 2 : 0);
             this.game.playerOne.playPaddleCollision();
         }
 
         // Player Two collision
         const playerTwoCollision = detectCollision(this, this.game.playerTwo);
         if (playerTwoCollision != null) {
+            const playerTwoHitBox = this.game.playerTwo.getHitBox();
             this.speed = playerTwoCollision.speedModifier(this);
-            this.position.x = this.game.playerTwo.position.x - this.size;
+            this.position.x = playerTwoHitBox.left - (this.theme.ball.overflow ? this.theme.ball.overflowX / 2 : 0);
             this.game.playerTwo.playPaddleCollision();
+        }
+    }
+
+    draw(ctx) {
+        const width = this.theme.ball.overflow ? this.width + this.theme.ball.overflowX : this.width;
+        const height = this.theme.ball.overflow ? this.height + this.theme.ball.overflowY : this.height;
+        ctx.drawImage(
+            this.imageElement,
+            this.position.x,
+            this.position.y,
+            width,
+            height
+        );
+
+        // Debug region below
+        drawHitBox(this, ctx);
+        if (!zoneDebug) {
+            return;
+        }
+        for (let i = 0; i < debugZones.length; i++) {
+            const zone = debugZones[i];
+            if (i === 0) {
+                drawHitBox(zone, ctx, "red");
+            }
+            if (i === 1) {
+                drawHitBox(zone, ctx, "green");
+            }
+            if (i === 2) {
+                drawHitBox(zone, ctx, "blue");
+            }
+            if (i === 3) {
+                drawHitBox(zone, ctx, "Yellow");
+            }
+            if (i === 4) {
+                drawHitBox(zone, ctx, "Pink");
+            }
+            if (i === 5) {
+                drawHitBox(zone, ctx, "Orange");
+            }
         }
     }
 
     reset() {
         this.position = {
-            x: this.gameWidth / 2 - this.size / 2,
-            y: this.gameHeight / 2 - this.size / 2
+            x: this.gameWidth / 2 - (this.theme.ball.overflow ? this.theme.ball.overflowX / 2 + this.width : this.width / 2),
+            y: this.gameHeight / 2 - (this.theme.ball.overflow ? this.theme.ball.overflowY / 2 + this.height : this.height / 2)
         };
         this.speed = {
             x: this.minSpeed,
